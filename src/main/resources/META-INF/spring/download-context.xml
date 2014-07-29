@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd">
+
+	<description>Context for downloading interactions from PSIQUIC Servers</description>
+	
+	<import resource="classpath:launch-context.xml" />
+	
+	<!-- Beans -->
+	
+	<!-- Repeat -->
+	
+	<aop:config>
+        <aop:pointcut id="de.mpg.biochem.batch"
+                expression="execution(* de.mpg.biochem.batch.ServiceItemReader.read(..))" />
+        <aop:advisor pointcut-ref="de.mpg.biochem.batch" advice-ref="retryAdvice" order="100000"/>
+    </aop:config>
+
+    <bean id="retryAdvice" class="org.springframework.retry.interceptor.RetryOperationsInterceptor">
+		<property name="retryOperations" ref="retryTemplate"/>
+	</bean>
+	
+	<!-- simple policy that retries the call 50 times -->
+    <bean id="simpleRetryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
+        <property name="maxAttempts" value="50"/>
+    </bean>
+	
+	<!-- implementation of BackOffPolicy that pauses for a fixed period of time before continuing (2 mins) -->
+    <bean id="fixedBackOffPolicy" class="org.springframework.retry.backoff.FixedBackOffPolicy">
+        <property name="backOffPeriod" value="120000"/>
+    </bean>
+	
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+        <property name="retryPolicy" ref="simpleRetryPolicy" />
+        <property name="backOffPolicy" ref="fixedBackOffPolicy" />
+        <property name="listeners">
+                <list>
+                        <ref bean="simpleRetryListener" />
+                </list>
+        </property>
+    </bean>
+    
+    <bean id="simpleRetryListener" class="de.mpg.biochem.batch.SimpleRetryListener"/>
+	
+	<!-- End Repeat -->
+	
+	<!-- XML Marshalling -->
+	<bean id="castorMarshaller" class="org.springframework.oxm.castor.CastorMarshaller" >
+		<property name="mappingLocation" value="classpath:mapping.xml" />
+	</bean>
+	
+	<bean id="XMLConverter" class="de.mpg.biochem.util.XMLConverter">
+		<property name="marshaller" ref="castorMarshaller" />
+		<property name="unmarshaller" ref="castorMarshaller" />
+	</bean>
+	
+	<!-- ServiceHandler -->
+	<bean id="serviceHandler" class="de.mpg.biochem.model.ServiceHandler" destroy-method="save">
+		<property name="XMLConverter" ref="XMLConverter" />
+	</bean>
+	
+	<!-- PSICQUIC registry client -->
+	<bean id="registryClient" class="org.hupo.psi.mi.psicquic.registry.client.registry.DefaultPsicquicRegistryClient"/>
+	
+	<bean id="exitListener" class="de.mpg.biochem.model.ExitAfterJobExecution"/>
+	
+	<!-- Partitioner -->
+	<bean id="partitioner" class="de.mpg.biochem.batch.PSICQUICServicePartitioner" scope="step">
+		<property name="serviceHandler" ref="serviceHandler"/>
+		<property name="registryClient" ref="registryClient"/>
+		<property name="psicquicQuery" value="#{jobParameters['query']}"/>
+		<property name="services">
+			<!-- Service String -->
+			<bean class="org.springframework.util.StringUtils" factory-method="commaDelimitedListToSet">
+		    	<constructor-arg type="java.lang.String" value="#{jobParameters['services']}"/>
+		    </bean>
+		</property>
+	</bean>
+	
+	<!-- Reader -->
+	<bean id="serviceItemReader" class="de.mpg.biochem.batch.ServiceItemReader" scope="step">
+		<constructor-arg name="service" value="#{stepExecutionContext[service]}" />
+  	</bean>
+	
+	<!-- Writer -->
+	<bean id="flatFileItemWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step" >
+		<property name="resource" value="file:#{jobParameters['path']}#{stepExecutionContext[name]}" />
+		<property name="shouldDeleteIfEmpty" value="true"/>
+		<property name="lineAggregator">
+			<bean class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>
+		</property>
+	</bean>
+	
+	<!-- Steps -->
+	<batch:step id="downloadSlave">
+		<tasklet>
+			<chunk reader="serviceItemReader" writer="flatFileItemWriter" commit-interval="15000" />
+		</tasklet>
+	</batch:step>
+	
+	<!-- Job -->
+	<batch:job id="downloadJob" job-repository="jobRepository">
+		<batch:step id="downloadMaster">
+			<partition step="downloadSlave" partitioner="partitioner">
+				<handler grid-size="5" task-executor="taskExecutor" />
+			</partition>
+	    </batch:step>
+		<batch:listeners>
+			<batch:listener ref="exitListener"/>
+		</batch:listeners>
+	</batch:job>
+</beans>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<description>Context for clustering interactions from MITab file</description>
+	
+	<import resource="classpath:launch-context.xml" />
+	
+	<!-- Beans -->
+	
+	<bean id="exitListener" class="de.mpg.biochem.model.ExitAfterJobExecution"/>
+	
+	<bean id="biBeanIoFactory" class="de.mpg.biochem.batch.BinaryInteractionIoFactory" />
+	
+	<!-- Tasklets -->
+    
+    <bean id="simpleSort" class="de.mpg.biochem.tasklet.FlatFileSortTasklet" scope="step">
+		<property name="inputResource">
+			<bean class="org.springframework.core.io.FileSystemResource">
+				<constructor-arg>
+					<bean class="java.io.File">
+						<constructor-arg value="#{jobParameters['fileName']}" />
+					</bean>
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="outputResource">
+			<bean class="org.springframework.core.io.FileSystemResource">
+				<constructor-arg>
+					<bean class="java.io.File">
+						<constructor-arg value="#{jobParameters['fileName']}_sorted" />
+					</bean>
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="comparator">
+			<bean class="de.mpg.biochem.batch.BinaryInteractionComparator"/>
+		</property>
+		<property name="inputIoFactory" ref="biBeanIoFactory" />
+		<property name="outputIoFactory" ref="biBeanIoFactory" />
+		<property name="tmpDirectory">
+			<bean class="org.springframework.core.io.FileSystemResource">
+				<constructor-arg>
+					<bean class="java.io.File">
+						<constructor-arg value="." />
+					</bean>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="groupCluster" class="de.mpg.biochem.tasklet.GroupClusterTask" scope="step">
+		<property name="inputResource">
+			<bean class="org.springframework.core.io.FileSystemResource">
+				<constructor-arg>
+					<bean class="java.io.File">
+						<constructor-arg value="#{jobParameters['fileName']}_sorted" />
+					</bean>
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="outputResource">
+			<bean class="org.springframework.core.io.FileSystemResource">
+				<constructor-arg>
+					<bean class="java.io.File">
+						<constructor-arg value="#{jobParameters['fileName']}_clustered" />
+					</bean>
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="inputIoFactory" ref="biBeanIoFactory" />
+		<property name="outputIoFactory" ref="biBeanIoFactory" />
+		<property name="scoreName" value="#{jobParameters['scoreName']}" />
+		<property name="allMappingNames" value="#{jobParameters['mappings']}" />
+	</bean>
+    
+    <!-- Job -->
+    <batch:job id="clusterJob" job-repository="jobRepository">
+		<batch:step id="sort" next="cluster">
+			<batch:tasklet ref="simpleSort"/>
+		</batch:step>
+		<batch:step id="cluster">
+			<batch:tasklet ref="groupCluster"/>
+		</batch:step>
+		<batch:listeners>
+			<batch:listener ref="exitListener"/>
+		</batch:listeners>
+    </batch:job>	
+
+</beans>

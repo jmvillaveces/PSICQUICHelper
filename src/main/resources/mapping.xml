@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mapping>
+   <class name="de.mpg.biochem.model.ServiceList">
+      <map-to xml="services" />
+      <field name="Services" type="de.mpg.biochem.model.Service" collection="arraylist">
+         <bind-xml name="service" />
+      </field>
+   </class>
+   <class name="de.mpg.biochem.model.Service">
+      <field name="Name" type="java.lang.String">
+         <bind-xml name="name" node="attribute" />
+      </field>
+      <field name="RestURL" type="java.lang.String">
+         <bind-xml name="restURL" node="element" />
+      </field>
+      <field name="Version" type="java.lang.String">
+         <bind-xml name="version" node="element" />
+      </field>
+      <field name="Count" type="java.lang.Long">
+         <bind-xml name="count" node="element" />
+      </field>
+      <field name="Indexed" type="java.lang.Boolean">
+         <bind-xml name="indexed" node="element" />
+      </field>
+      <field name="Query" type="java.lang.String">
+         <bind-xml name="query" node="element" />
+      </field>
+   </class>
+</mapping>

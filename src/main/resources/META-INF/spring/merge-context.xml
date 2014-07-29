@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<description>Context for downloading interactions from PSIQUIC Servers</description>
+	
+	<import resource="classpath:launch-context.xml" />
+	
+	<!-- Beans -->
+	<bean id="exitListener" class="de.mpg.biochem.model.ExitAfterJobExecution"/>
+	
+	<!-- Multi Reader -->
+    <bean id="multiReaderWrapper" class="de.mpg.biochem.batch.WrappedMrirToGetCurrentResource" scope="step">
+		<property name="resources" value="file:#{jobParameters['fileName']}" />
+		<property name="strict" value="true"/>
+		<property name="delegate">
+			<bean class="org.springframework.batch.item.file.FlatFileItemReader">
+				<property name="lineMapper">
+        		    <bean class="de.mpg.biochem.batch.PSIMITabLineMapper"></bean>
+        		</property>
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- PSIMITab Writers -->
+	<bean id="BIWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
+		<property name="resource" value="file:unified_#{jobParameters['fileName']}" />
+		<property name="lineAggregator">
+            <bean class="de.mpg.biochem.batch.PSIMITabLineAgregator"></bean>
+        </property>
+	</bean>
+    
+    <bean id="fileNameListener" class="de.mpg.biochem.interbase.batch.CrossRefListener" scope="step"/>
+    
+    <!-- Job -->
+	<batch:job id="mergeJob" job-repository="jobRepository">
+		<batch:step id="merge">
+			<batch:tasklet>
+				<batch:chunk reader="multiReaderWrapper" writer="BIWriter" commit-interval="30000"/>
+			    <batch:listeners>
+			    	<batch:listener ref="fileNameListener"/>
+			    </batch:listeners>
+			</batch:tasklet>
+		</batch:step>
+		<batch:listeners>
+			<batch:listener ref="exitListener"/>
+		</batch:listeners>
+    </batch:job>
+
+</beans>
