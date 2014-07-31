@@ -1,4 +1,4 @@
-package de.mpg.biochem.tasklet;
+package de.mpg.biochem.batch.tasklet;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import de.mpg.biochem.batch.FlatFileItemIoFactory;
+import de.mpg.biochem.batch.io.FlatFileItemIoFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

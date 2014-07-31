@@ -1,4 +1,4 @@
-package de.mpg.biochem.batch;
+package de.mpg.biochem.batch.io;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,8 +15,8 @@ import org.springframework.batch.item.NonTransientResourceException;
 import org.springframework.batch.item.ParseException;
 import org.springframework.batch.item.UnexpectedInputException;
 
+import de.mpg.biochem.batch.tasklet.FetchInteractionsTasklet;
 import de.mpg.biochem.model.Service;
-import de.mpg.biochem.tasklet.FetchInteractionsTasklet;
 
 public class ServiceItemReader implements ItemReader<String> {
 
@@ -81,7 +81,7 @@ public class ServiceItemReader implements ItemReader<String> {
 			inputStream.close();
 			br.close();
 		}catch(Exception e) {
-			logger.warn("Couldn't close stream");
+			//logger.warn("Couldn't close stream");
 		}
 	}
 	

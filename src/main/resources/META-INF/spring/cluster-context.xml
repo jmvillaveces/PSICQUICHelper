@@ -14,11 +14,11 @@
 	
 	<bean id="exitListener" class="de.mpg.biochem.model.ExitAfterJobExecution"/>
 	
-	<bean id="biBeanIoFactory" class="de.mpg.biochem.batch.BinaryInteractionIoFactory" />
+	<bean id="biBeanIoFactory" class="de.mpg.biochem.batch.io.BinaryInteractionIoFactory" />
 	
 	<!-- Tasklets -->
     
-    <bean id="simpleSort" class="de.mpg.biochem.tasklet.FlatFileSortTasklet" scope="step">
+    <bean id="simpleSort" class="de.mpg.biochem.batch.tasklet.FlatFileSortTasklet" scope="step">
 		<property name="inputResource">
 			<bean class="org.springframework.core.io.FileSystemResource">
 				<constructor-arg>
@@ -53,7 +53,7 @@
 		</property>
 	</bean>
 	
-	<bean id="groupCluster" class="de.mpg.biochem.tasklet.GroupClusterTask" scope="step">
+	<bean id="groupCluster" class="de.mpg.biochem.batch.tasklet.GroupClusterTask" scope="step">
 		<property name="inputResource">
 			<bean class="org.springframework.core.io.FileSystemResource">
 				<constructor-arg>

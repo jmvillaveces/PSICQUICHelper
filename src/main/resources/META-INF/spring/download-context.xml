@@ -14,34 +14,32 @@
 	<!-- Beans -->
 	
 	<!-- Repeat -->
-	
 	<aop:config>
-        <aop:pointcut id="de.mpg.biochem.batch"
-                expression="execution(* de.mpg.biochem.batch.ServiceItemReader.read(..))" />
-        <aop:advisor pointcut-ref="de.mpg.biochem.batch" advice-ref="retryAdvice" order="100000"/>
+        <aop:pointcut id="serviceReaderPointcut" expression="execution(* de.mpg.biochem.batch.io.ServiceItemReader.read(..))" />
+        <aop:advisor pointcut-ref="serviceReaderPointcut" advice-ref="retryAdvice" order="1"/>
     </aop:config>
 
     <bean id="retryAdvice" class="org.springframework.retry.interceptor.RetryOperationsInterceptor">
 		<property name="retryOperations" ref="retryTemplate"/>
 	</bean>
 	
-	<!-- simple policy that retries the call 50 times -->
+	<!-- simple policy that retries the call 10 times -->
     <bean id="simpleRetryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
-        <property name="maxAttempts" value="50"/>
+        <property name="maxAttempts" value="10"/>
     </bean>
 	
-	<!-- implementation of BackOffPolicy that pauses for a fixed period of time before continuing (2 mins) -->
+	<!-- implementation of BackOffPolicy that pauses for a fixed period of time before continuing (3 mins) -->
     <bean id="fixedBackOffPolicy" class="org.springframework.retry.backoff.FixedBackOffPolicy">
-        <property name="backOffPeriod" value="120000"/>
+        <property name="backOffPeriod" value="180000"/>
     </bean>
 	
 	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
         <property name="retryPolicy" ref="simpleRetryPolicy" />
         <property name="backOffPolicy" ref="fixedBackOffPolicy" />
         <property name="listeners">
-                <list>
-                        <ref bean="simpleRetryListener" />
-                </list>
+        	<list>
+            	<ref bean="simpleRetryListener" />
+            </list>
         </property>
     </bean>
     
@@ -83,13 +81,13 @@
 	</bean>
 	
 	<!-- Reader -->
-	<bean id="serviceItemReader" class="de.mpg.biochem.batch.ServiceItemReader" scope="step">
+	<bean id="serviceItemReader" class="de.mpg.biochem.batch.io.ServiceItemReader" scope="step">
 		<constructor-arg name="service" value="#{stepExecutionContext[service]}" />
   	</bean>
 	
 	<!-- Writer -->
 	<bean id="flatFileItemWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step" >
-		<property name="resource" value="file:#{jobParameters['path']}#{stepExecutionContext[name]}" />
+		<property name="resource" value="file:#{jobParameters['path']}#{stepExecutionContext[name]}.tab" />
 		<property name="shouldDeleteIfEmpty" value="true"/>
 		<property name="lineAggregator">
 			<bean class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>

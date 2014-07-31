@@ -22,6 +22,12 @@ public class IndexDecider implements JobExecutionDecider {
 		String uniprotDownloadPath = path + "/idmapping_selected.tab.gz",
 				ncbiDownloadPath = path + "/gene2accession.gz";
 		
+		File index = new File(path+"index");
+		if(!index.exists()) {
+			logger.info("Decided to create index");
+			return new FlowExecutionStatus("CONTINUE");
+		}
+		
 		File mapping = new File(uniprotDownloadPath);
 		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(2).toDate())){
 			logger.info("Decided to create index");

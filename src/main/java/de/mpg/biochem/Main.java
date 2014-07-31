@@ -29,8 +29,8 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import de.mpg.biochem.batch.tasklet.FetchInteractionsTasklet;
 import de.mpg.biochem.model.ServiceHandler;
-import de.mpg.biochem.tasklet.FetchInteractionsTasklet;
 
 public class Main {
 	

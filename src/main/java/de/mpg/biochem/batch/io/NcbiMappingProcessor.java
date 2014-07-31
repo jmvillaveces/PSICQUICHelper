@@ -1,4 +1,4 @@
-package de.mpg.biochem.batch;
+package de.mpg.biochem.batch.io;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package de.mpg.biochem.batch;
+package de.mpg.biochem.batch.io;
 
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;

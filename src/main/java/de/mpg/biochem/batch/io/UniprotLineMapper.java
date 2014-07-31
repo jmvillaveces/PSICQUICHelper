@@ -1,4 +1,4 @@
-package de.mpg.biochem.batch;
+package de.mpg.biochem.batch.io;
 
 import org.apache.log4j.Logger;
 import org.springframework.batch.item.file.LineMapper;

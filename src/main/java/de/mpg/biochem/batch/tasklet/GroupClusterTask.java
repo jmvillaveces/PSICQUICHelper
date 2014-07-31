@@ -1,4 +1,4 @@
-package de.mpg.biochem.tasklet;
+package de.mpg.biochem.batch.tasklet;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.core.io.FileSystemResource;
 
 import de.mpg.biochem.batch.BinaryInteractionComparator;
-import de.mpg.biochem.batch.FlatFileItemIoFactory;
+import de.mpg.biochem.batch.io.FlatFileItemIoFactory;
 import psidev.psi.mi.tab.model.BinaryInteraction;
 import uk.ac.ebi.enfin.mi.cluster.Encore2Binary;
 import uk.ac.ebi.enfin.mi.cluster.EncoreInteraction;

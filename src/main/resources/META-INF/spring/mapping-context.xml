@@ -17,8 +17,8 @@
 	
 	<!-- Interbase Processor -->
     <bean id="interProcessor" class="de.mpg.biochem.batch.InterBaseProcessor" scope="step">
-    	<constructor-arg name="indexPath" value="file:#{jobParameters['mappingPath']/index}"/>
-    	<constructor-arg name="filePath" value="file:#{jobParameters['mappingPath']/index/notmapped.tab}"/>
+    	<constructor-arg name="indexPath" value="file:#{jobParameters['mappingPath']}/index"/>
+    	<constructor-arg name="filePath" value="file:#{jobParameters['mappingPath']}/index/notmapped.tab"/>
     	<property name="servicesToSkip" value="DIP,IntAct,MINT,MatrixDB,MPIDB,MolCon,I2D,InnateDB,BioGRID,BIND,I2D-IMEx,InnateDB-IMEx"/>
     </bean>
 	
@@ -27,7 +27,7 @@
 	
 	<!-- Uniprot Mapping gzip file reader -->
 	<bean id="gzipItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
-        <property name="resource" value="file:#{jobParameters['mappingPath']/idmapping_selected.tab.gz}" />
+        <property name="resource" value="file:#{jobParameters['mappingPath']}idmapping_selected.tab.gz" />
         <property name="lineMapper">
             <bean class="de.mpg.biochem.batch.UniprotLineMapper" />
         </property>
@@ -39,7 +39,7 @@
     
     <!-- NCBI Mapping gzip file reader -->
 	<bean id="ncbiGzipItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
-        <property name="resource" value="file:#{jobParameters['mappingPath']/gene2accession.gz}" />
+        <property name="resource" value="file:#{jobParameters['mappingPath']}gene2accession.gz" />
         <property name="strict" value="false" />
         <property name="lineMapper">
             <bean class="de.mpg.biochem.batch.UniprotLineMapper"/>
@@ -60,16 +60,16 @@
 	<!-- Writers -->
 	<!-- Uniprot Mapping Writer -->
 	<bean id="mappingIndexWriter" class="de.mpg.biochem.batch.UniprotMappingIndexWriter" scope="step">
-		<constructor-arg name="path" value="#{jobParameters['mappingPath']/index}"/>
+		<constructor-arg name="path" value="#{jobParameters['mappingPath']}/index"/>
 	</bean>
 	
 	<!-- ncbi Mapping Writer -->
 	<bean id="ncbiMappingIndexWriter" class="de.mpg.biochem.batch.NcbiMappingIndexWriter" scope="step">
-		<constructor-arg name="path" value="#{jobParameters['mappingPath']/index}"/>
+		<constructor-arg name="path" value="#{jobParameters['mappingPath']}/index"/>
 	</bean>
 	
 	<bean id="BIWriter2" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
-		<property name="resource" value="file:#{jobParameters['fileName'].mapped}" />
+		<property name="resource" value="file:#{jobParameters['fileName']}.mapped" />
 		<property name="lineAggregator">
             <bean class="de.mpg.biochem.batch.PSIMITabLineAgregator"></bean>
         </property>
