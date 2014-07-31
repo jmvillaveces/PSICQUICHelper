@@ -4,10 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.hupo.psi.mi.psicquic.wsclient.PsicquicSimpleClient;
 import org.springframework.batch.item.ItemReader;
@@ -15,7 +12,6 @@ import org.springframework.batch.item.NonTransientResourceException;
 import org.springframework.batch.item.ParseException;
 import org.springframework.batch.item.UnexpectedInputException;
 
-import de.mpg.biochem.batch.tasklet.FetchInteractionsTasklet;
 import de.mpg.biochem.model.Service;
 
 public class ServiceItemReader implements ItemReader<String> {

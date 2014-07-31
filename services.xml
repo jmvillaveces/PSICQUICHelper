@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services><service name="IntAct"><restURL>http://www.ebi.ac.uk/Tools/webservices/psicquic/intact/webservices/current/search/</restURL><version>1.3.13</version><count>312624</count><indexed>false</indexed><query>idA:P37840 AND idB:P37840</query></service></services>

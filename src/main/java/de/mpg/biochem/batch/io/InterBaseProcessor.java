@@ -17,15 +17,14 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.queryParser.ParseException;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Value;
 import org.xml.sax.SAXException;
 
-import de.mpg.biochem.service.IDRegexFinder;
-import de.mpg.biochem.service.UniProtIndex;
 import psidev.psi.mi.tab.model.BinaryInteraction;
 import psidev.psi.mi.tab.model.CrossReference;
 import psidev.psi.mi.tab.model.CrossReferenceImpl;
 import psidev.psi.mi.tab.model.Interactor;
+import de.mpg.biochem.service.IDRegexFinder;
+import de.mpg.biochem.service.UniProtIndex;
 
 public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, BinaryInteraction> {
 

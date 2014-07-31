@@ -1,13 +1,11 @@
 package de.mpg.biochem.batch.tasklet;
 
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.hupo.psi.mi.psicquic.registry.ServiceType;
 import org.hupo.psi.mi.psicquic.registry.client.registry.PsicquicRegistryClient;

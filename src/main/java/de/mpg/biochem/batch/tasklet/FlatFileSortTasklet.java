@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import de.mpg.biochem.batch.io.FlatFileItemIoFactory;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.StepContribution;
@@ -20,6 +18,8 @@ import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+
+import de.mpg.biochem.batch.io.FlatFileItemIoFactory;
 
 /**
  * Tasklet sorts the contents of the specified input file and writes the sorted
