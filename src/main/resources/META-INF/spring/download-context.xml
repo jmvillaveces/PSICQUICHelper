@@ -58,7 +58,7 @@
 	</bean>
 	
 	<!-- ServiceHandler -->
-	<bean id="serviceHandler" class="de.mpg.biochem.model.ServiceHandler">
+	<bean id="serviceHandler" class="de.mpg.biochem.model.ServiceHandler" destroy-method="save">
 		<property name="XMLConverter" ref="XMLConverter" />
 	</bean>
 	

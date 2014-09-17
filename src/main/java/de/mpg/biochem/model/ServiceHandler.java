@@ -37,7 +37,6 @@ public class ServiceHandler {
 	
 	public synchronized void add(Service service) throws IOException{
 		sList.add(service);
-		save();
 	}
 	
 	public List<Service> getServiceList(){

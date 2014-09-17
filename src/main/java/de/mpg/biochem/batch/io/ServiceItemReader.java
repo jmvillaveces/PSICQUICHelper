@@ -56,6 +56,7 @@ public class ServiceItemReader implements ItemReader<String> {
 			line = br.readLine();
 			
 			if (line == null) {
+				service.setIndexed(true);
 				logger.info("Got data from "+service.getName());
 			}
 		}

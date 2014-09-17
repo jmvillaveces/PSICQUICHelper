@@ -16,24 +16,24 @@
 	<bean id="indexDecider" class="de.mpg.biochem.batch.IndexDecider"/>
 	
 	<!-- Interbase Processor -->
-    <bean id="interProcessor" class="de.mpg.biochem.batch.InterBaseProcessor" scope="step">
+    <bean id="interProcessor" class="de.mpg.biochem.batch.io.InterBaseProcessor" scope="step">
     	<constructor-arg name="indexPath" value="file:#{jobParameters['mappingPath']}/index"/>
     	<constructor-arg name="filePath" value="file:#{jobParameters['mappingPath']}/index/notmapped.tab"/>
     	<property name="servicesToSkip" value="DIP,IntAct,MINT,MatrixDB,MPIDB,MolCon,I2D,InnateDB,BioGRID,BIND,I2D-IMEx,InnateDB-IMEx"/>
     </bean>
 	
 	<!-- ncbi Processor -->
-    <bean id="ncbiProcessor" class="de.mpg.biochem.batch.NcbiMappingProcessor" scope="step"/>
+    <bean id="ncbiProcessor" class="de.mpg.biochem.batch.io.NcbiMappingProcessor" scope="step"/>
 	
 	<!-- Uniprot Mapping gzip file reader -->
 	<bean id="gzipItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
         <property name="resource" value="file:#{jobParameters['mappingPath']}idmapping_selected.tab.gz" />
         <property name="lineMapper">
-            <bean class="de.mpg.biochem.batch.UniprotLineMapper" />
+            <bean class="de.mpg.biochem.batch.io.UniprotLineMapper" />
         </property>
         <property name="strict" value="false" />
         <property name="bufferedReaderFactory">
-            <bean class="de.mpg.biochem.batch.GZipBufferedReaderFactory" />
+            <bean class="de.mpg.biochem.batch.io.GZipBufferedReaderFactory" />
         </property>
     </bean>
     
@@ -42,10 +42,10 @@
         <property name="resource" value="file:#{jobParameters['mappingPath']}gene2accession.gz" />
         <property name="strict" value="false" />
         <property name="lineMapper">
-            <bean class="de.mpg.biochem.batch.UniprotLineMapper"/>
+            <bean class="de.mpg.biochem.batch.io.UniprotLineMapper"/>
         </property>
         <property name="bufferedReaderFactory">
-            <bean class="de.mpg.biochem.batch.GZipBufferedReaderFactory" />
+            <bean class="de.mpg.biochem.batch.io.GZipBufferedReaderFactory" />
         </property>
     </bean>
 	
@@ -53,40 +53,53 @@
 		<property name="resource" value="file:#{jobParameters['fileName']}" />
 		<property name="strict" value="true"/>
 		<property name="lineMapper">
-        	<bean class="de.mpg.biochem.batch.PSIMITabLineMapper"></bean>
+        	<bean class="de.mpg.biochem.batch.io.PSIMITabLineMapper"></bean>
         </property>
 	</bean>
 	
 	<!-- Writers -->
 	<!-- Uniprot Mapping Writer -->
-	<bean id="mappingIndexWriter" class="de.mpg.biochem.batch.UniprotMappingIndexWriter" scope="step">
+	<bean id="mappingIndexWriter" class="de.mpg.biochem.batch.io.UniprotMappingIndexWriter" scope="step">
 		<constructor-arg name="path" value="#{jobParameters['mappingPath']}/index"/>
 	</bean>
 	
 	<!-- ncbi Mapping Writer -->
-	<bean id="ncbiMappingIndexWriter" class="de.mpg.biochem.batch.NcbiMappingIndexWriter" scope="step">
+	<bean id="ncbiMappingIndexWriter" class="de.mpg.biochem.batch.io.NcbiMappingIndexWriter" scope="step">
 		<constructor-arg name="path" value="#{jobParameters['mappingPath']}/index"/>
 	</bean>
 	
 	<bean id="BIWriter2" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
 		<property name="resource" value="file:#{jobParameters['fileName']}.mapped" />
 		<property name="lineAggregator">
-            <bean class="de.mpg.biochem.batch.PSIMITabLineAgregator"></bean>
+            <bean class="de.mpg.biochem.batch.io.PSIMITabLineAgregator"></bean>
         </property>
 	</bean>
 	
-	<!-- Tasklets -->
-	<bean id="downloadMappingFiles" class="de.mpg.biochem.tasklet.DownloadMappingsTasklet" scope="step">
+	<!-- Partitioner -->
+	<bean id="partitioner" class="de.mpg.biochem.batch.DownloadPartitioner" scope="step">
 		<property name="uniprotUrl" value="#{jobParameters['uniprotUrl']}" />
 		<property name="ncbiUrl" value="#{jobParameters['ncbiUrl']}" />
 		<property name="path" value="#{jobParameters['mappingPath']}" />
 	</bean>
+	
+	<!-- Tasklets -->
+	<bean id="downloadTasklet" class="de.mpg.biochem.batch.tasklet.DownloadFileTasklet" scope="step">
+		<property name="path" value="#{stepExecutionContext['path']}" />
+		<property name="url" value="#{stepExecutionContext['url']}" />
+	</bean>
+    
+    <!-- Steps -->
+	<batch:step id="downloadSlave">
+		<tasklet ref="downloadTasklet"/>
+	</batch:step>
     
     <!-- Job -->
 	<batch:job id="mapJob" job-repository="jobRepository">
-		<batch:step id="download" next="decision">
-			<batch:tasklet ref="downloadMappingFiles"/>
-		</batch:step>
+		<batch:step id="downloadMaster" next="decision">
+			<partition step="downloadSlave" partitioner="partitioner">
+				<handler grid-size="5" task-executor="taskExecutor" />
+			</partition>
+	    </batch:step>
 		<batch:decision id="decision" decider="indexDecider">
 			<batch:next on="CONTINUE" to="createUniprotIndexParent" />
 			<batch:next on="SKIP" to="mapIds" />
