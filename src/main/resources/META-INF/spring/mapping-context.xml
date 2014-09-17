@@ -17,8 +17,8 @@
 	
 	<!-- Interbase Processor -->
     <bean id="interProcessor" class="de.mpg.biochem.batch.io.InterBaseProcessor" scope="step">
-    	<constructor-arg name="indexPath" value="file:#{jobParameters['mappingPath']}/index"/>
-    	<constructor-arg name="filePath" value="file:#{jobParameters['mappingPath']}/index/notmapped.tab"/>
+    	<constructor-arg name="indexPath" value="#{jobParameters['mappingPath']}/index"/>
+    	<constructor-arg name="filePath" value="#{jobParameters['mappingPath']}/index/notmapped.tab"/>
     	<property name="servicesToSkip" value="DIP,IntAct,MINT,MatrixDB,MPIDB,MolCon,I2D,InnateDB,BioGRID,BIND,I2D-IMEx,InnateDB-IMEx"/>
     </bean>
 	
