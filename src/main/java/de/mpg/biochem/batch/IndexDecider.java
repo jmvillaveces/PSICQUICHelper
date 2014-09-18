@@ -28,6 +28,11 @@ public class IndexDecider implements JobExecutionDecider {
 			return new FlowExecutionStatus("CONTINUE");
 		}
 		
+		if(FileUtils.isFileNewer(index, new DateTime().minusWeeks(2).toDate())) {
+			logger.info("Decided skip index creation");
+			return new FlowExecutionStatus("SKIP");
+		}
+		
 		File mapping = new File(uniprotDownloadPath);
 		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(2).toDate())){
 			logger.info("Decided to create index");

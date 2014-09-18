@@ -220,6 +220,8 @@ public class Main {
 				throw new IllegalArgumentException("-file is not defined");
 			}
 			
+			ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/merge-context.xml");
+			
 			Job job = (Job) ctx.getBean("mergeJob");
 			JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
 			

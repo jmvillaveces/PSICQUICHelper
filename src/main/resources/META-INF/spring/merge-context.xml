@@ -6,7 +6,7 @@
 	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<description>Context for downloading interactions from PSIQUIC Servers</description>
+	<description>Context for merging interactions from PSIQUIC Servers</description>
 	
 	<import resource="classpath:launch-context.xml" />
 	
@@ -15,12 +15,12 @@
 	
 	<!-- Multi Reader -->
     <bean id="multiReaderWrapper" class="de.mpg.biochem.batch.WrappedMrirToGetCurrentResource" scope="step">
-		<property name="resources" value="file:#{jobParameters['fileName']}" />
+		<property name="resources" value="file:#{jobParameters['fileName']}/*.tab" />
 		<property name="strict" value="true"/>
 		<property name="delegate">
 			<bean class="org.springframework.batch.item.file.FlatFileItemReader">
 				<property name="lineMapper">
-        		    <bean class="de.mpg.biochem.batch.PSIMITabLineMapper"></bean>
+        		    <bean class="de.mpg.biochem.batch.io.PSIMITabLineMapper"></bean>
         		</property>
 			</bean>
 		</property>
@@ -28,13 +28,13 @@
 	
 	<!-- PSIMITab Writers -->
 	<bean id="BIWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
-		<property name="resource" value="file:unified_#{jobParameters['fileName']}" />
+		<property name="resource" value="file:unified.tab" />
 		<property name="lineAggregator">
-            <bean class="de.mpg.biochem.batch.PSIMITabLineAgregator"></bean>
+            <bean class="de.mpg.biochem.batch.io.PSIMITabLineAgregator"></bean>
         </property>
 	</bean>
     
-    <bean id="fileNameListener" class="de.mpg.biochem.interbase.batch.CrossRefListener" scope="step"/>
+    <bean id="fileNameListener" class="de.mpg.biochem.batch.CrossRefListener" scope="step"/>
     
     <!-- Job -->
 	<batch:job id="mergeJob" job-repository="jobRepository">
