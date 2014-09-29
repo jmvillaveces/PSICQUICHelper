@@ -1,6 +1,6 @@
 # PSICQUICHelper
 
-Console app to download data from PSICQUIC servers, clustering and scoring MITab.
+Console app to download data from PSICQUIC servers, merging and scoring MITab.
 
 ## Arguments
 
