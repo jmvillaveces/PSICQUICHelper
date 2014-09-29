@@ -117,120 +117,125 @@ public class Main {
 		CommandLineParser parser = new GnuParser();
 		CommandLine line = parser.parse(options, args);
 	    
-		if (line.hasOption("help")){
-			HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("PSICQUICHelper", options);
-		}else if (line.hasOption("dwl")){
-			//Download interactions
-			
-			String path = "", queryStr = "*", serviceLst = "";
-			if(line.hasOption("o")) {
-				path = line.getOptionValue("o");
+		try {
+			if (line.hasOption("help")){
+				HelpFormatter formatter = new HelpFormatter();
+	            formatter.printHelp("PSICQUICHelper", options);
+			}else if (line.hasOption("dwl")){
+				//Download interactions
 				
-				path = (path.endsWith("/")) ? path : path + "/";
-				FileUtils.forceMkdir(new File(path));
-			}
-			
-			if(line.hasOption("services")){
-				serviceLst = StringUtils.join(line.getOptionValues("services"), ",");
-			}
-			
-			if(line.hasOption("q")){
-				queryStr = line.getOptionValue("q");
-			}
-			
-			ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/download-context.xml");
-			
-			ServiceHandler serviceHandler = ctx.getBean(ServiceHandler.class);
-			serviceHandler.setPath(path+"services.xml");
-			
-			Job job = (Job) ctx.getBean("downloadJob");
-			JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
-			
-			JobParametersBuilder jobParameters = new JobParametersBuilder();
-			jobParameters.addString("path", path);
-			jobParameters.addString("services", serviceLst);
-			jobParameters.addString("query", queryStr);
-			
-			jobLauncher.run(job, jobParameters.toJobParameters());
-			
-		}else if(line.hasOption("cl")){
-			//Cluster file
-			
-			if(!line.hasOption("file")) { 
-				throw new IllegalArgumentException("-file is not defined");
-			}
-			
-			ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/cluster-context.xml");
-			
-			String mappingValues = "uniprotkb,intact,ddbj/embl/genbank,chebi,irefindex,hgnc,ensembl",
-					scoreName = "miscore";
-			
-			if(line.hasOption("mappings")){
-				mappingValues = line.getOptionValue("mappings");
-			}
-			
-			if(line.hasOption("sn")){
-				scoreName = line.getOptionValue("sn");
-			}
-			
-			Job job = (Job) ctx.getBean("clusterJob");
-			JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
-			
-			JobParametersBuilder jobParameters = new JobParametersBuilder();
-			jobParameters.addString("fileName", line.getOptionValue("file"));
-			jobParameters.addString("mappings", mappingValues);
-			jobParameters.addString("scoreName", scoreName);
-			
-			jobLauncher.run(job, jobParameters.toJobParameters());
-			
-		}else if(line.hasOption("map")) {
-			
-			if(!line.hasOption("file")) { 
-				throw new IllegalArgumentException("-file is not defined");
-			}
-			
-			ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/mapping-context.xml");
-			
-			String out = "", 
-					uniprotUrl = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz", 
-					ncbiUrl = "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2accession.gz";
-			
-			if(line.hasOption("o")) {
-				out = line.getOptionValue("o");
-				
-				out = (out.endsWith("/")) ? out : out + "/";
-				FileUtils.forceMkdir(new File(out));
-			}
-			
-			Job job = (Job) ctx.getBean("mapJob");
-			JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
-			
-			JobParametersBuilder jobParameters = new JobParametersBuilder();
-			jobParameters.addString("fileName", line.getOptionValue("file"));
-			jobParameters.addString("mappingPath", out);
-			jobParameters.addString("uniprotUrl", uniprotUrl);
-			jobParameters.addString("ncbiUrl", ncbiUrl);
-			
-			jobLauncher.run(job, jobParameters.toJobParameters());
+				String path = "", queryStr = "*", serviceLst = "";
+				if(line.hasOption("o")) {
+					path = line.getOptionValue("o");
 					
-		}else if(line.hasOption("m")) {
-			
-			if(!line.hasOption("file")) { 
-				throw new IllegalArgumentException("-file is not defined");
+					path = (path.endsWith("/")) ? path : path + "/";
+					FileUtils.forceMkdir(new File(path));
+				}
+				
+				if(line.hasOption("services")){
+					serviceLst = StringUtils.join(line.getOptionValues("services"), ",");
+				}
+				
+				if(line.hasOption("q")){
+					queryStr = line.getOptionValue("q");
+				}
+				
+				ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/download-context.xml");
+				
+				ServiceHandler serviceHandler = ctx.getBean(ServiceHandler.class);
+				serviceHandler.setPath(path+"services.xml");
+				
+				Job job = (Job) ctx.getBean("downloadJob");
+				JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
+				
+				JobParametersBuilder jobParameters = new JobParametersBuilder();
+				jobParameters.addString("path", path);
+				jobParameters.addString("services", serviceLst);
+				jobParameters.addString("query", queryStr);
+				
+				jobLauncher.run(job, jobParameters.toJobParameters());
+				
+			}else if(line.hasOption("cl")){
+				//Cluster file
+				
+				if(!line.hasOption("file")) { 
+					throw new IllegalArgumentException("-file is not defined");
+				}
+				
+				ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/cluster-context.xml");
+				
+				String mappingValues = "uniprotkb,intact,ddbj/embl/genbank,chebi,irefindex,hgnc,ensembl",
+						scoreName = "miscore";
+				
+				if(line.hasOption("mappings")){
+					mappingValues = line.getOptionValue("mappings");
+				}
+				
+				if(line.hasOption("sn")){
+					scoreName = line.getOptionValue("sn");
+				}
+				
+				Job job = (Job) ctx.getBean("clusterJob");
+				JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
+				
+				JobParametersBuilder jobParameters = new JobParametersBuilder();
+				jobParameters.addString("fileName", line.getOptionValue("file"));
+				jobParameters.addString("mappings", mappingValues);
+				jobParameters.addString("scoreName", scoreName);
+				
+				jobLauncher.run(job, jobParameters.toJobParameters());
+				
+			}else if(line.hasOption("map")) {
+				
+				if(!line.hasOption("file")) { 
+					throw new IllegalArgumentException("-file is not defined");
+				}
+				
+				ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/mapping-context.xml");
+				
+				String out = "", 
+						uniprotUrl = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz", 
+						ncbiUrl = "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2accession.gz";
+				
+				if(line.hasOption("o")) {
+					out = line.getOptionValue("o");
+					
+					out = (out.endsWith("/")) ? out : out + "/";
+					FileUtils.forceMkdir(new File(out));
+				}
+				
+				Job job = (Job) ctx.getBean("mapJob");
+				JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
+				
+				JobParametersBuilder jobParameters = new JobParametersBuilder();
+				jobParameters.addString("fileName", line.getOptionValue("file"));
+				jobParameters.addString("mappingPath", out);
+				jobParameters.addString("uniprotUrl", uniprotUrl);
+				jobParameters.addString("ncbiUrl", ncbiUrl);
+				
+				jobLauncher.run(job, jobParameters.toJobParameters());
+						
+			}else if(line.hasOption("m")) {
+				
+				if(!line.hasOption("file")) { 
+					throw new IllegalArgumentException("-file is not defined");
+				}
+				
+				ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/merge-context.xml");
+				
+				Job job = (Job) ctx.getBean("mergeJob");
+				JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
+				
+				JobParametersBuilder jobParameters = new JobParametersBuilder();
+				jobParameters.addString("fileName", line.getOptionValue("file"));
+				
+				jobLauncher.run(job, jobParameters.toJobParameters());
+				
+			}else {
+				HelpFormatter formatter = new HelpFormatter();
+	            formatter.printHelp("PSICQUICHelper", options);
 			}
-			
-			ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/merge-context.xml");
-			
-			Job job = (Job) ctx.getBean("mergeJob");
-			JobLauncher jobLauncher = (JobLauncher) ctx.getBean("jobLauncher");
-			
-			JobParametersBuilder jobParameters = new JobParametersBuilder();
-			jobParameters.addString("fileName", line.getOptionValue("file"));
-			
-			jobLauncher.run(job, jobParameters.toJobParameters());
-			
-		}else {
+		}catch(IllegalArgumentException e) {
 			HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("PSICQUICHelper", options);
 		}
