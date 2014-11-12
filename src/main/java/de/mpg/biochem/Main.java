@@ -13,7 +13,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -29,8 +28,7 @@ import de.mpg.biochem.model.ServiceHandler;
 public class Main {
 	
 	private static ApplicationContext ctx = null;
-	private static Logger logger = Logger.getLogger(Main.class);
-
+	
 	public static void main(String[] args) throws IOException, ParseException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
 		
 		
@@ -74,6 +72,11 @@ public class Main {
 				.withDescription("map identifiers to uniprot")
 				.create("map");
 		
+		Option i = OptionBuilder.withArgName("i")
+				.withLongOpt("interactions")
+				.withDescription("if present will map interactions")
+				.create("i");
+		
 		Option mapPath = OptionBuilder.withArgName("p")
 				.withLongOpt("path")
 				.withDescription("mapping db folder. If it does not exists, it will be created")
@@ -111,6 +114,7 @@ public class Main {
 		options.addOption(nameScore);
 		options.addOption(mappings);
 		options.addOption(map);
+		options.addOption(i);
 		options.addOption(merge);
 		
 		
@@ -191,11 +195,15 @@ public class Main {
 					throw new IllegalArgumentException("-file is not defined");
 				}
 				
-				ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/mapping-context.xml");
+				if(line.hasOption("i")) {
+					ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/mapping-context.xml");
+				}else {
+					ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/spring/id-mapping-context.xml");
+				}
 				
 				String out = "", 
 						uniprotUrl = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz", 
-						ncbiUrl = "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2accession.gz";
+						tarUrl = "ftp://ftp.arabidopsis.org/home/tair/Proteins/Id_conversions/Uniprot_TAIR10_May2012.txt";
 				
 				if(line.hasOption("o")) {
 					out = line.getOptionValue("o");
@@ -211,7 +219,7 @@ public class Main {
 				jobParameters.addString("fileName", line.getOptionValue("file"));
 				jobParameters.addString("mappingPath", out);
 				jobParameters.addString("uniprotUrl", uniprotUrl);
-				jobParameters.addString("ncbiUrl", ncbiUrl);
+				jobParameters.addString("tarUrl", tarUrl);
 				
 				jobLauncher.run(job, jobParameters.toJobParameters());
 						

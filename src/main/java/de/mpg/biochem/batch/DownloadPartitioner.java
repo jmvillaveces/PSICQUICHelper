@@ -14,18 +14,19 @@ public class DownloadPartitioner implements Partitioner{
 
 	private Logger logger = Logger.getLogger(DownloadPartitioner.class);
 	private String uniprotUrl;
-	private String ncbiUrl;
+	private String tarUrl;
 	private String path;
 	
 	@Override
 	public Map<String, ExecutionContext> partition(int threads) {
-		String uniprotDownloadPath = path + "idmapping_selected.tab.gz",
-				ncbiDownloadPath = path + "gene2accession.gz";
+		
+		String uniprotDownloadPath = path + uniprotUrl.substring(uniprotUrl.lastIndexOf('/', uniprotUrl.length())).replace("/", ""),
+				tarDownloadPath = path + tarUrl.substring(tarUrl.lastIndexOf('/', tarUrl.length())).replace("/", "");
 		
 		Map<String, ExecutionContext> result = new HashMap<String, ExecutionContext>();
 		
 		File mapping = new File(uniprotDownloadPath);
-		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(2).toDate())){
+		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(4).toDate())){
 			logger.info("Uniprot mapping file is up to date in "+uniprotDownloadPath);
 			//Do nothing
 		}else{
@@ -38,18 +39,18 @@ public class DownloadPartitioner implements Partitioner{
 			result.put(uniprotUrl, ctx);
 		}
 			
-		mapping = new File(ncbiDownloadPath);
-		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(2).toDate())){
-			logger.info("NCBI mapping file is up to date in "+ncbiDownloadPath);
+		mapping = new File(tarDownloadPath);
+		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(4).toDate())){
+			logger.info("TAR mapping file is up to date in "+tarDownloadPath);
 			//Do nothing
 		}else{
 			//Download the file
-			logger.info("Downloading ncbi mapping file to "+ncbiDownloadPath);
+			logger.info("Downloading TAR mapping file to "+tarDownloadPath);
 			
 			ExecutionContext ctx = new ExecutionContext();
-			ctx.put("url", ncbiUrl);
-			ctx.put("path", ncbiDownloadPath);
-			result.put(ncbiUrl, ctx);
+			ctx.put("url", tarUrl);
+			ctx.put("path", tarDownloadPath);
+			result.put(tarUrl, ctx);
 		}
 		
 		return result;
@@ -59,12 +60,11 @@ public class DownloadPartitioner implements Partitioner{
 		this.uniprotUrl = uniprotUrl;
 	}
 
-	public void setNcbiUrl(String ncbiUrl) {
-		this.ncbiUrl = ncbiUrl;
+	public void setTarUrl(String tarUrl) {
+		this.tarUrl = tarUrl;
 	}
 
 	public void setPath(String path) {
 		this.path = path;
 	}
-
 }

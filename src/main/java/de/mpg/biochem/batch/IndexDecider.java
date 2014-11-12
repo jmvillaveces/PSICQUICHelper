@@ -12,6 +12,8 @@ import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
 public class IndexDecider implements JobExecutionDecider {
 	
+	private String uniprotUrl;
+	private String tarUrl;
 	private String path;
 	
 	private Logger logger = Logger.getLogger(IndexDecider.class);
@@ -19,8 +21,13 @@ public class IndexDecider implements JobExecutionDecider {
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
 		
-		String uniprotDownloadPath = path + "/idmapping_selected.tab.gz",
-				ncbiDownloadPath = path + "/gene2accession.gz";
+		path = jobExecution.getJobParameters().getString("mappingPath");
+		uniprotUrl = jobExecution.getJobParameters().getString("uniprotUrl");
+		tarUrl = jobExecution.getJobParameters().getString("tarUrl");
+		
+		
+		String uniprotDownloadPath = path + uniprotUrl.substring(uniprotUrl.lastIndexOf('/', uniprotUrl.length())),
+				tarDownloadPath = path + tarUrl.substring(tarUrl.lastIndexOf('/', tarUrl.length()));
 		
 		File index = new File(path+"index");
 		if(!index.exists()) {
@@ -39,7 +46,7 @@ public class IndexDecider implements JobExecutionDecider {
 			return new FlowExecutionStatus("CONTINUE");
 		}
 		
-		mapping = new File(ncbiDownloadPath);
+		mapping = new File(tarDownloadPath);
 		if(mapping.exists() && FileUtils.isFileNewer(mapping, new DateTime().minusWeeks(2).toDate())){
 			logger.info("Decided to create index");
 			return new FlowExecutionStatus("CONTINUE");
@@ -51,5 +58,13 @@ public class IndexDecider implements JobExecutionDecider {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public void setUniprotUrl(String uniprotUrl) {
+		this.uniprotUrl = uniprotUrl;
+	}
+
+	public void setTarUrl(String tarUrl) {
+		this.tarUrl = tarUrl;
 	}
 }

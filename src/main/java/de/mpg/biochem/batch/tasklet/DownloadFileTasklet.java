@@ -37,6 +37,4 @@ public class DownloadFileTasklet implements Tasklet{
 	public void setPath(String path) {
 		this.path = path;
 	}
-	
-	
 }
