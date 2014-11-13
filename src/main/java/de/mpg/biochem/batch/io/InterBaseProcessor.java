@@ -20,7 +20,7 @@ import de.mpg.biochem.service.UniProtIndex;
 public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, BinaryInteraction[]> {
 
 	
-	private String[] DBS = new String[] {"tair", "refseq", "genbank indentifier", "entrezgene/loculslink", "entrez gene/loculslink"};
+	private String[] DBS = new String[] { "genbank indentifier", "entrezgene/locuslink", "entrez gene/locuslink", "refseq", "ddbj/embl/genbank", "tair"};
 	private List<String> servicesToSkip;
 	
 	private UniProtIndex uniprot;
@@ -45,9 +45,11 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 			List<CrossReference> idsB = processInteractor(interaction.getInteractorB());
 			
 			if(idsA.size() > 0 && idsB.size() > 0) {
-				return getInteractions(idsA, idsB, interaction);
+				BinaryInteraction[] ints = getInteractions(idsA, idsB, interaction);
+				return ints;
 			}
 		}
+		
 		List<BinaryInteraction> bis = new ArrayList<BinaryInteraction>();
 		bis.add(interaction);
 		return bis.toArray(new BinaryInteraction[0]);
@@ -57,9 +59,17 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 		
 		List<BinaryInteraction> bis = new ArrayList<BinaryInteraction>();
 		for(CrossReference idA : idsA) {
-			Interactor intA = createInteractor(idsA, interaction.getInteractorA());
+			
+			List<CrossReference> intAIds = new ArrayList<CrossReference>();
+			intAIds.add(idA);
+			
+			Interactor intA = createInteractor(intAIds, interaction.getInteractorA());
 			for(CrossReference idB : idsB) {
-				Interactor intB = createInteractor(idsB, interaction.getInteractorB());
+				
+				List<CrossReference> intBIds = new ArrayList<CrossReference>();
+				intBIds.add(idB);
+				
+				Interactor intB = createInteractor(intBIds, interaction.getInteractorB());
 				
 				BinaryInteraction bi = new BinaryInteractionImpl(intA, intB);
 				
@@ -112,11 +122,9 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 		
 		//In case is a molecule interacts with itself
 		if(interactor != null && interactor.getIdentifiers().size() > 0){
-			List<CrossReference> ids = interactor.getIdentifiers();
-			List<CrossReference> uniprotkb = getElementsByDB(ids, "uniprotkb");
+			List<CrossReference> uniprotkb = getElementsByDB(interactor.getIdentifiers(), "uniprotkb");
 			
 			if(uniprotkb.size() == 0) {
-				
 				uniprotkb = getElementsByDB(interactor.getAlternativeIdentifiers(), "uniprotkb");
 				if(uniprotkb.size() != 1) {
 					return getMappings(interactor);
@@ -141,18 +149,16 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 	
 	private List<CrossReference> getMappings(Interactor interactor) throws IOException, ParseException {
 		
-		String taxId = interactor.getOrganism().getTaxid();
+		//String taxId = interactor.getOrganism().getTaxid();
 		
 		TreeSet<String> mappings = new TreeSet<String>();
 		List<CrossReference> ids = interactor.getIdentifiers();
 		for(String db : DBS) {
 			List<CrossReference> tmp = getElementsByDB(ids, db);
 			if(tmp.size() > 0) {
-				TreeSet<String> x = uniprot.search(tmp.get(0).getIdentifier(), taxId);
-				if(x.size() > 0) { 
-					if(mappings.size() == 0 || x.size() < mappings.size()) {
-						mappings = x;
-					}
+				mappings = uniprot.search(tmp.get(0).getIdentifier());
+				if(mappings.size() > 0) { 
+					break;
 				}
 			}
 		}

@@ -10,8 +10,8 @@ import org.springframework.batch.item.ItemProcessor;
 
 public class UPIndexProcessor implements ItemProcessor<String[], Document>{
 	
-	// UniProtKB-AC, RefSeq, GI, Ensembl
-	private int[] idColumns = new int[]{2, 3, 4, 18};
+	// UniProtKB-AC, RefSeq, GI, EMBL, EMBL-CDS, Ensembl
+	private int[] idColumns = new int[]{2, 3, 4, /*16, 17,*/ 18};
 	
 	//Ends with dot and number
 	private String splitPattern = "\\.|-\\d$";
