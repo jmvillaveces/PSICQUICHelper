@@ -20,7 +20,7 @@ import de.mpg.biochem.service.UniProtIndex;
 public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, BinaryInteraction[]> {
 
 	
-	private String[] DBS = new String[] { "genbank indentifier", "entrezgene/locuslink", "entrez gene/locuslink", "refseq", "ddbj/embl/genbank", "tair"};
+	private String[] DBS = new String[] { "genbank indentifier", "entrezgene/locuslink", "entrez gene/locuslink", "refseq", "ddbj/embl/genbank", "tair", "string"};
 	private List<String> servicesToSkip;
 	
 	private UniProtIndex uniprot;
@@ -37,6 +37,8 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 	@Override
 	public BinaryInteraction[] process(BinaryInteraction interaction) throws Exception {
 		
+		
+		BinaryInteraction[] bis = new BinaryInteraction[] {interaction};
 		CrossReference cr = (CrossReference) interaction.getSourceDatabases().get(interaction.getSourceDatabases().size() -1);
 		
 		//Check if interaction should be analyzed
@@ -45,14 +47,11 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 			List<CrossReference> idsB = processInteractor(interaction.getInteractorB());
 			
 			if(idsA.size() > 0 && idsB.size() > 0) {
-				BinaryInteraction[] ints = getInteractions(idsA, idsB, interaction);
-				return ints;
+				bis = getInteractions(idsA, idsB, interaction);
 			}
 		}
 		
-		List<BinaryInteraction> bis = new ArrayList<BinaryInteraction>();
-		bis.add(interaction);
-		return bis.toArray(new BinaryInteraction[0]);
+		return bis;
 	}
 	
 	private BinaryInteraction[] getInteractions(List<CrossReference> idsA, List<CrossReference> idsB, BinaryInteraction interaction) {
@@ -93,6 +92,7 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 				bis.add(bi);
 			}
 		}
+		
 		return bis.toArray(new BinaryInteraction[0]);
 	}
 	
@@ -156,7 +156,13 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 		for(String db : DBS) {
 			List<CrossReference> tmp = getElementsByDB(ids, db);
 			if(tmp.size() > 0) {
-				mappings = uniprot.search(tmp.get(0).getIdentifier());
+				
+				String id = tmp.get(0).getIdentifier();
+				if(db.equals(DBS[6])) {
+					id = id.substring(id.lastIndexOf('.') + 1);
+				}
+				
+				mappings = uniprot.search(id);
 				if(mappings.size() > 0) { 
 					break;
 				}
@@ -173,92 +179,6 @@ public class InterBaseProcessor implements ItemProcessor<BinaryInteraction, Bina
 	public void setServicesToSkip(List<String> servicesToSkip) {
 		this.servicesToSkip = servicesToSkip;
 	}
-	
-	/*public void processInteractor(Interactor interactor) throws MalformedURLException, SAXException, IOException, ParseException, InterruptedException {
-		
-		//In case is a molecule interacts with itself
-		if(interactor != null && interactor.getIdentifiers().size() > 0){
-			
-			List<CrossReference> ids = new ArrayList<CrossReference>();
-			ids.addAll(interactor.getIdentifiers());
-			ids.addAll(interactor.getAlternativeIdentifiers());
-			
-			String taxId = interactor.getOrganism().getTaxid();
-			
-			CrossReference accession = getBestGuessId(interactor);
-			Matcher matcher = uniprotPattern.matcher(accession.getIdentifier());
-			if(!matcher.matches())
-				FileUtils.writeStringToFile(notMapped, interactor.toString()+"\n", true);
-				
-			List<CrossReference> identifiers = interactor.getIdentifiers();
-			interactor.getAlternativeIdentifiers().addAll(identifiers);
-			identifiers.clear();
-			identifiers.add(accession);
-		}
-	}
-	
-	private CrossReference getBestGuessId(Interactor interactor) throws CorruptIndexException, IOException, ParseException{
-		
-		//MainIds
-		List<CrossReference> mainIds = interactor.getIdentifiers();
-		
-		//Alt Ids
-		List<CrossReference> ids = new ArrayList<CrossReference>();
-		ids.addAll(mainIds);
-		ids.addAll(interactor.getAlternativeIdentifiers());
-
-		String taxId = interactor.getOrganism().getTaxid();
-		
-		//Default bestGuess 
-		CrossReference bestGuess = mainIds.get(0);
-		
-		TreeSet<String> accessions = uniprot.smartSearch(getIdsStringArray(ids), taxId);
-		if(accessions.size() == 1){
-			return  new CrossReferenceImpl("uniprotkb", accessions.first());
-		}else{
-			IDRegexFinder rFinder = new IDRegexFinder(StringUtils.join(mainIds, "$"));
-			
-			String mapped = null;
-			if(rFinder.getUniprot().size() > 0){
-				mapped = map(rFinder.getUniprot().toArray(new String[0]), taxId);
-				bestGuess = (mapped != null) ? new CrossReferenceImpl("uniprotkb", mapped) : new CrossReferenceImpl("uniprotkb", rFinder.getUniprot().first());
-			}else if(rFinder.getRefseq().size() > 0){
-				mapped = map(rFinder.getRefseq().toArray(new String[0]), taxId);
-				bestGuess = (mapped != null) ? new CrossReferenceImpl("uniprotkb", mapped) : new CrossReferenceImpl("refseq", rFinder.getRefseq().first());
-			}else if(rFinder.getNcbiGi().size() > 0){
-				mapped = map(rFinder.getNcbiGi().toArray(new String[0]), taxId);
-				bestGuess = (mapped != null) ? new CrossReferenceImpl("uniprotkb", mapped) : new CrossReferenceImpl("ncbiGI", rFinder.getNcbiGi().first());
-			}else if(rFinder.getEnsembl().size() > 0){
-				mapped = map(rFinder.getEnsembl().toArray(new String[0]), taxId);
-				bestGuess = (mapped != null) ? new CrossReferenceImpl("uniprotkb", mapped) : new CrossReferenceImpl("ensembl", rFinder.getEnsembl().first());
-			}
-		}
-	
-		return bestGuess;
-	}
-	
-	private String[] getIdsStringArray(List<CrossReference> ids){
-		List<String> strLst = new ArrayList<String>();
-		
-		Iterator<CrossReference> i = ids.iterator();
-		while(i.hasNext()){
-			strLst.add(i.next().getIdentifier());
-		}
-		return strLst.toArray(new String[0]);
-	}
-	
-	private String map(String[] ids, String taxId) throws CorruptIndexException, IOException, ParseException {
-		String mapped = null;
-		TreeSet<String> accessions = uniprot.smartSearch(ids, taxId);
-		if(accessions.size() == 1){
-			mapped = accessions.first();
-		}
-		return mapped;
-	}
-
-	public void setServicesToSkip(List<String> servicesToSkip) {
-		this.servicesToSkip = servicesToSkip;
-	}*/
 }
 
 
