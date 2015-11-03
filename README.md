@@ -21,7 +21,7 @@ java -jar PSICQUICHelper.jar -dwl -q species:human -o data
 
 Download human interactions from IntAct and MINT
 ```
-java -jar PSICQUICHelper.jar -dwl -q species:human -o data -s IntAct,MINT
+java -jar PSICQUICHelper.jar -dwl -q species:human -o data -services IntAct,MINT
 ```
 
 Download all interactions from all servers
