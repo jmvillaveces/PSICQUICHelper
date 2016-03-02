@@ -1,6 +1,6 @@
 # PSICQUICHelper
 
-Console app to download, cluster and score protein interactions in MITab format.
+Java aplication for downloading, integrating ans scoring molecular interactions from PSICQUIC databases.
 
 ## Download
 Download interactions form PSICQUIC servers.
